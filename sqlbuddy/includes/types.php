@@ -10,6 +10,7 @@ types.php
 MIT-style license
 
 Copyright (c) 2008 Calvin Lough, <http://calv.in>
+Reviewed : 2016 Carlos Martín Arnillas <https://interruptorgeek.com>
 
 */
 

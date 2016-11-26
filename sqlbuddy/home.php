@@ -10,7 +10,7 @@ home.php
 MIT license
 
 2008 Calvin Lough <http://calv.in>
-
+Reviewed : 2016 Carlos Martín Arnillas <https://interruptorgeek.com>
 */
 
 include "functions.php";
@@ -21,7 +21,7 @@ loginCheck();
 <table class="hometable">
 <tr>
 	<td>
-	<h4><?php echo __("Welcome to SQL Buddy!"); ?></h4>
+	<h4><?php echo __("Welcome to SQL Buddy - IG Review!"); ?></h4>
 	</td>
 </tr>
 <tr>
@@ -47,7 +47,8 @@ loginCheck();
 
 	<table cellspacing="0" cellpadding="0">
 	<?php
-
+	/*
+	//Disabled version check at the moment
 	if (function_exists("curl_init") && ((isset($sbconfig['EnableUpdateCheck']) && $sbconfig['EnableUpdateCheck'] == true) || !isset($sbconfig['EnableUpdateCheck']))) {
 
 		//check for a new version
@@ -85,7 +86,7 @@ loginCheck();
 
 		}
 	}
-
+	*/
 	?>
 	<tr>
 		<td class="inputfield">
@@ -149,9 +150,9 @@ loginCheck();
 	<td style="padding: 1px 0 15px 10px">
 
 	<ul>
-	<li><a href="http://www.sqlbuddy.com/help/"><?php echo __("Help"); ?></a></li>
-	<li><a href="http://www.sqlbuddy.com/translations/"><?php echo __("Translations"); ?></a></li>
-	<li><a href="http://www.sqlbuddy.com/contact/"><?php echo __("Contact"); ?></a></li>
+	<li><a href="http://www.interruptorgeek.com/sql-buddy-ig-review/"><?php echo __("Help"); ?></a></li>
+	<li><a href="https://github.com/Frecuencio/sqlbuddy-php7"><?php echo __("GitHub"); ?></a></li>
+	<li><a href="http://sqlbuddy.com/"><?php echo __("Original"); ?></a></li>
 	</ul>
 
 	</td>

@@ -130,7 +130,7 @@ startOutput();
 			?>
 			<table cellpadding="0" id="tb">
 			<tr>
-			<td class="loginheader"><h3><?php echo __("Unsupported browser"); ?></h3><a href="http://www.sqlbuddy.com/help/" title="Help"><?php echo __("Help!"); ?></a></td>
+			<td class="loginheader"><h3><?php echo __("Unsupported browser"); ?></h3><a href="http://www.interruptorgeek.com/sql-buddy-ig-review" title="Help"><?php echo __("Help!"); ?></a></td>
 			</tr>
 			<tr>
 			<td><?php echo __("We're sorry, but currently only Internet Explorer 7 is supported. It is available as a free download on Microsoft's website. Other free browsers are also supported, including Firefox, Safari, and Opera."); ?></td>
@@ -143,7 +143,7 @@ startOutput();
 			?>
 			<table cellpadding="0" id="tb">
 			<tr>
-			<td colspan="2"><div class="loginheader"><h3><strong><?php echo __("Login"); ?></strong></h3><a href="http://www.sqlbuddy.com/help/" title="Help"><?php echo __("Help!"); ?></a></div></td>
+			<td colspan="2"><div class="loginheader"><h3><strong><?php echo __("Login"); ?></strong></h3><a href="http://www.interruptorgeek.com/sql-buddy-ig-review" title="Help"><?php echo __("Help!"); ?></a></div></td>
 			</tr>
 			<?php
 			if (isset($error)) {
