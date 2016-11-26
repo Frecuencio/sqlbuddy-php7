@@ -14,7 +14,7 @@ Reviewed : 2016 Carlos Martín Arnillas <https://interruptorgeek.com>
 */
 
 class SQL {
-	
+
 	var $adapter = "";
 	var $method = "";
 	var $version = "";
@@ -22,27 +22,27 @@ class SQL {
 	var $options = "";
 	var $errorMessage = "";
 	var $db = "";
-	
-	function SQL($connString, $user = "", $pass = "") {
+
+	function __construct($connString, $user = "", $pass = "") {
 		list($this->adapter, $options) = explode(":", $connString, 2);
-		
+
 		if ($this->adapter != "sqlite") {
 			$this->adapter = "mysql";
 		}
-		
+
 		$optionsList = explode(";", $options);
-		
+
 		foreach ($optionsList as $option) {
 			list($a, $b) = explode("=", $option);
 			$opt[$a] = $b;
 		}
-		
+
 		$this->options = $opt;
 		$database = (array_key_exists("database", $opt)) ? $opt['database'] : "";
-		
+
 		if ($this->adapter == "sqlite" && substr(sqlite_libversion(), 0, 1) == "3" && class_exists("PDO") && in_array("sqlite", PDO::getAvailableDrivers())) {
 			$this->method = "pdo";
-			
+
 			try
 			{
 				$this->conn = new PDO("sqlite:" . $database, null, null, array(PDO::ATTR_PERSISTENT => true));
@@ -53,7 +53,7 @@ class SQL {
           	}
 		} else if ($this->adapter == "sqlite" && substr(sqlite_libversion(), 0, 1) == "2" && class_exists("PDO") && in_array("sqlite2", PDO::getAvailableDrivers())) {
 			$this->method = "pdo";
-			
+
 			try
 			{
 				$this->conn = new PDO("sqlite2:" . $database, null, null, array(PDO::ATTR_PERSISTENT => true));
@@ -70,24 +70,25 @@ class SQL {
 			$host = (array_key_exists("host", $opt)) ? $opt['host'] : "";
 			$this->conn = @mysqli_connect($host, $user, $pass);
 		}
-		
+
 		if ($this->conn && $this->method == "pdo") {
 			$this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
 		}
-		
+
 		if ($this->conn && $this->adapter == "mysql") {
 			$this->query("SET NAMES 'utf8'");
+			$_SESSION['MYSQL_VERSION'] =  mysqli_get_server_version($this->conn);
 		}
-		
+
 		if ($this->conn && $database) {
 			$this->db = $database;
 		}
 	}
-	
+
 	function isConnected() {
 		return ($this->conn !== false);
 	}
-	
+
 	function disconnect() {
 		if ($this->conn) {
 			if ($this->method == "pdo") {
@@ -101,15 +102,15 @@ class SQL {
 			}
 		}
 	}
-	
+
 	function getAdapter() {
 		return $this->adapter;
 	}
-	
+
 	function getMethod() {
 		return $this->method;
 	}
-	
+
 	function getOptionValue($optKey) {
 		if (array_key_exists($optKey, $this->options)) {
 			return $this->options[$optKey];
@@ -117,7 +118,7 @@ class SQL {
 			return false;
 		}
 	}
-	
+
 	function selectDB($db) {
 		if ($this->conn) {
 			if ($this->method == "mysql") {
@@ -135,7 +136,7 @@ class SQL {
 		if ($this->conn) {
 			if ($this->method == "pdo") {
 				$queryResult = $this->conn->prepare($queryText);
-				
+
 				if ($queryResult)
 					$queryResult->execute();
 
@@ -166,14 +167,14 @@ class SQL {
 			return false;
 		}
 	}
-	
+
 	// Be careful using this function - when used with pdo, the pointer is moved
-	// to the end of the result set and the query needs to be rerun. Unless you 
+	// to the end of the result set and the query needs to be rerun. Unless you
 	// actually need a count of the rows, use the isResultSet() function instead
 	function rowCount($resultSet) {
 		if (!$resultSet)
 			return false;
-		
+
 		if ($this->conn) {
 			if ($this->method == "pdo") {
 				return count($resultSet->fetchAll());
@@ -184,7 +185,7 @@ class SQL {
 			}
 		}
 	}
-	
+
 	function isResultSet($resultSet) {
 		if ($this->conn) {
 			if ($this->method == "pdo") {
@@ -198,7 +199,7 @@ class SQL {
 	function fetchArray($resultSet) {
 		if (!$resultSet)
 			return false;
-		
+
 		if ($this->conn) {
 			if ($this->method == "pdo") {
 				return $resultSet->fetch(PDO::FETCH_NUM);
@@ -213,7 +214,7 @@ class SQL {
 	function fetchAssoc($resultSet) {
 		if (!$resultSet)
 			return false;
-		
+
 		if ($this->conn) {
 			if ($this->method == "pdo") {
 				return $resultSet->fetch(PDO::FETCH_ASSOC);
@@ -228,7 +229,7 @@ class SQL {
 	function affectedRows($resultSet) {
 		if (!$resultSet)
 			return false;
-		
+
 		if ($this->conn) {
 			if ($this->method == "pdo") {
 				return $resultSet->rowCount();
@@ -239,11 +240,11 @@ class SQL {
 			}
 		}
 	}
-	
+
 	function result($resultSet, $targetRow, $targetColumn = "") {
 		if (!$resultSet)
 			return false;
-		
+
 		if ($this->conn) {
 			if ($this->method == "pdo") {
 				if ($targetColumn) {
@@ -261,7 +262,7 @@ class SQL {
 			}
 		}
 	}
-	
+
 	function listDatabases() {
 		if ($this->conn) {
 			if ($this->adapter == "mysql") {
@@ -271,7 +272,7 @@ class SQL {
 			}
 		}
 	}
-	
+
 	function listTables() {
 		if ($this->conn) {
 			if ($this->adapter == "mysql") {
@@ -281,7 +282,7 @@ class SQL {
 			}
 		}
 	}
-	
+
 	function hasCharsetSupport()
 	{
 		if ($this->conn) {
@@ -292,17 +293,17 @@ class SQL {
 			}
 		}
 	}
-	
+
 	function listCharset() {
 		if ($this->conn) {
-			if ($this->adapter == "mysql") {	
+			if ($this->adapter == "mysql") {
 				return $this->query("SHOW CHARACTER SET");
 			} else if ($this->adapter == "sqlite") {
 				return "";
 			}
 		}
 	}
-	
+
 	function listCollation() {
 		if ($this->conn) {
 			if ($this->adapter == "mysql") {
@@ -312,7 +313,7 @@ class SQL {
 			}
 		}
 	}
-	
+
 	function insertId() {
 		if ($this->conn) {
 			if ($this->method == "pdo") {
@@ -338,14 +339,14 @@ class SQL {
 			}
 		}
 	}
-	
+
 	function getVersion() {
 		if ($this->conn) {
 			// cache
 			if ($this->version) {
 				return $this->version;
 			}
-			
+
 			if ($this->adapter == "mysql") {
 				$verSql = mysqli_get_server_info($this->conn);
 				$version = explode("-", $verSql);
@@ -358,7 +359,7 @@ class SQL {
 		}
 
 	}
-	
+
 	// returns the number of rows in a table
 	function tableRowCount($table) {
 		if ($this->conn) {
@@ -373,7 +374,7 @@ class SQL {
 			}
 		}
 	}
-	
+
 	// gets column info for a table
 	function describeTable($table) {
 		if ($this->conn) {
@@ -385,9 +386,9 @@ class SQL {
 				$columnStart = strpos($columnInfo, '(');
 				$columns = substr($columnInfo, $columnStart+1, -1);
 				$columns = split(',[^0-9]', $columns);
-				
+
 				$columnList = array();
-				
+
 				foreach ($columns as $column) {
 					$column = trim($column);
 					$columnSplit = explode(" ", $column, 2);
@@ -395,12 +396,12 @@ class SQL {
 					$columnType = (sizeof($columnSplit) > 1) ? $columnSplit[1] : "";
 					$columnList[] = array($columnName, $columnType);
 				}
-				
+
 				return $columnList;
 			}
 		}
 	}
-	
+
 	/*
 		Return names, row counts etc for every database, table and view in a JSON string
 	*/
@@ -418,20 +419,20 @@ class SQL {
 						if ($this->rowCount($tableSql)) {
 							$output .= ',"items": [';
 							while ($table = $this->fetchAssoc($tableSql)) {
-								
+
 								if ($schema['SCHEMA_NAME'] == "information_schema") {
 									$countSql = $this->query("SELECT COUNT(*) AS `RowCount` FROM `" . $table['TABLE_NAME'] . "`");
 									$rowCount = (int)($this->result($countSql, 0, "RowCount"));
 								} else {
 									$rowCount = (int)($table['TABLE_ROWS']);
 								}
-								
+
 								$output .= '{"name":"' . $table['TABLE_NAME'] . '","rowcount":' . $rowCount . '},';
 							}
-							
+
 							if (substr($output, -1) == ",")
 								$output = substr($output, 0, -1);
-							
+
 							$output .= ']';
 						}
 						$output .= '},';
@@ -440,14 +441,14 @@ class SQL {
 				}
 			} else if ($this->adapter == "mysql") {
 				$schemaSql = $this->listDatabases();
-				
+
 				if ($this->rowCount($schemaSql)) {
 					while ($schema = $this->fetchArray($schemaSql)) {
 						$output .= '{"name": "' . $schema[0] . '"';
-						
+
 						$this->selectDB($schema[0]);
 						$tableSql = $this->listTables();
-						
+
 						if ($this->rowCount($tableSql)) {
 							$output .= ',"items": [';
 							while ($table = $this->fetchArray($tableSql)) {
@@ -455,10 +456,10 @@ class SQL {
 								$rowCount = (int)($this->result($countSql, 0, "RowCount"));
 								$output .= '{"name":"' . $table[0] . '","rowcount":' . $rowCount . '},';
 							}
-							
+
 							if (substr($output, -1) == ",")
 								$output = substr($output, 0, -1);
-							
+
 							$output .= ']';
 						}
 						$output .= '},';
@@ -467,9 +468,9 @@ class SQL {
 				}
 			} else if ($this->adapter == "sqlite") {
 				$output .= '{"name": "' . $this->db . '"';
-				
+
 				$tableSql = $this->listTables();
-				
+
 				if ($tableSql) {
 					$output .= ',"items": [';
 					while ($tableRow = $this->fetchArray($tableSql)) {
@@ -477,10 +478,10 @@ class SQL {
 						$rowCount = (int)($this->result($countSql, 0, "RowCount"));
 						$output .= '{"name":"' . $tableRow[0] . '","rowcount":' . $rowCount . '},';
 					}
-					
+
 					if (substr($output, -1) == ",")
 						$output = substr($output, 0, -1);
-					
+
 					$output .= ']';
 				}
 				$output .= '}';
@@ -493,8 +494,8 @@ class SQL {
 		return $this->errorMessage;
 	}
 
-	protected function mysqli_result($res,$row=0,$col=0){ 
-	    $numrows = mysqli_num_rows($res); 
+	protected function mysqli_result($res,$row=0,$col=0){
+	    $numrows = mysqli_num_rows($res);
 	    if ($numrows && $row <= ($numrows-1) && $row >=0){
 	        mysqli_data_seek($res,$row);
 	        $resrow = (is_numeric($col)) ? mysqli_fetch_row($res) : mysqli_fetch_assoc($res);

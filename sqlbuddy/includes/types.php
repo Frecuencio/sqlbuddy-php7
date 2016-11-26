@@ -43,6 +43,19 @@ $typeList[] = "bit";
 $typeList[] = "enum";
 $typeList[] = "set";
 
+if(isset($_SESSION['MYSQL_VERSION']) && $_SESSION['MYSQL_VERSION'] >= 5.7) {
+  $typeList[] = "json";
+
+  $typeList[] = "geometry";
+  $typeList[] = "point";
+  $typeList[] = "linestring";
+  $typeList[] = "polygon";
+  $typeList[] = "multipoint";
+  $typeList[] = "multilinestring";
+  $typeList[] = "multipolygon";
+  $typeList[] = "geometrycollection";
+}
+
 $textDTs[] = "text";
 $textDTs[] = "mediumtext";
 $textDTs[] = "longtext";
