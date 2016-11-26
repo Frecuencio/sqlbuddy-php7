@@ -4,7 +4,7 @@ sqlbuddy-php7
 ---
 SQL Buddy fork with compatibility for PHP 5.5+ (PHP 7 Included). Plus, new MySQL column types.
 
-SQL Buddy - IG Review: [http://interruptorgeek.com/sql-buddy-ig-review/]()
+SQL Buddy - IG Review: [http://interruptorgeek.com/sql-buddy-ig-review/](http://interruptorgeek.com/sql-buddy-ig-review/)
 
 Original page: [http://sqlbuddy.com/](http://sqlbuddy.com/)
 
