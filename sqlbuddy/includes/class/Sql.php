@@ -179,6 +179,13 @@ class SQL {
 		return '';
 	}
 
+	function listEngines() {
+		if ($this->conn) {
+			return $this->query("SHOW ENGINES");
+		}
+		return '';
+	}
+
 	function insertId() {
 		if ($this->conn) {
 			return @mysqli_insert_id($this->conn);

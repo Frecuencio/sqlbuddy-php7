@@ -332,6 +332,29 @@ if ($conn->isResultSet($currentCharSql)) {
 		echo "</tr>";
 	}
 
+	if (isset($enginesList)) {
+		echo "<tr>";
+		echo "<td class=\"secondaryheader\" style=\"width: 60px\">";
+		echo __("Engine") . ":";
+		echo "</td>";
+		echo "<td>";
+		echo "<select id=\"TABLEENGINE\" style=\"width: 155px\">";
+		foreach ($enginesList as $engine => $engineSupport) {
+			echo "<option value=\"" . $engine . "\"";
+
+			if ($engineSupport == 'DEFAULT') {
+				echo " selected=\"selected\"";
+			} else if ($engineSupport == 'NO') {
+				echo " disabled=\"disabled\"";
+			}
+
+			echo ">" . $engine . "</option>";
+		}
+		echo "</select>";
+		echo "</td>";
+		echo "</tr>";
+	}
+
 	?>
 	<tr>
 		<td style="padding-top: 5px; color: gray" colspan="2">

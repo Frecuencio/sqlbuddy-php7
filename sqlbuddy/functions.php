@@ -157,6 +157,13 @@ if (isset($conn) && $conn->isConnected()) {
 				$collationList[$collationRow['Collation']] = $collationRow['Charset'];
 			}
 		}
+
+		$enginesSql = $conn->listEngines();
+		if ($conn->isResultSet($enginesSql)) {
+			while ($engineRow = $conn->fetchAssoc($enginesSql)) {
+				$enginesList[$engineRow['Engine']] = $engineRow['Support'];
+			}
+		}
 	}
 }
 

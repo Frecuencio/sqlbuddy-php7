@@ -44,7 +44,6 @@ $typeList[] = "bit";
 $typeList[] = "enum";
 $typeList[] = "set";
 
-// $conn->getVersion()?
 if(isset($_SESSION['MYSQL_VERSION']) && $_SESSION['MYSQL_VERSION'] >= 5.7) {
   $typeList[] = "json";
 

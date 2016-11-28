@@ -896,6 +896,13 @@ function createTable() {
 				createQuery += " CHARSET " + charset;
 		}
 
+		if ($('TABLEENGINE')) {
+			var engine = $('TABLEENGINE').value;
+			if (engine != '') {
+				createQuery += ' ENGINE = '+engine;
+			}
+		}
+
 		var x = new XHR({url: "ajaxcreatetable.php", onSuccess: createTableCallback}).send("table=" + tableName + "&query=" + createQuery);
 	}
 	else if (!(f(tableName))) {
