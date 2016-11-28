@@ -1020,7 +1020,7 @@ function toggleValuesLine(obj, box) {
 
 	var charsetToggle = $ES(".charsetToggle", box);
 
-	if (charsetToggle) {
+	if (charsetToggle && charsetToggle.length > 1) {
 		if (obj.value.indexOf("char") >= 0 || obj.value.indexOf("text") >= 0 || obj.value == "enum" || obj.value == "set") {
 			charsetToggle[0].style.display = '';
 			charsetToggle[1].style.display = '';
