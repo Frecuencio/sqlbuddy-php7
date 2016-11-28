@@ -31,14 +31,8 @@ loginCheck();
 
 	$dbVersion = $conn->getVersion();
 
-	if ($conn->getAdapter() == "mysql") {
-
-		if (isset($_SESSION['SB_LOGIN_USER']) && $conn->getOptionValue("host")) {
-			$message = sprintf(__("You are connected to MySQL %s with the user %s. PHP Version: %s"), $dbVersion, $_SESSION['SB_LOGIN_USER'] . "@" . $conn->getOptionValue("host"), phpversion());
-		}
-
-	} else if ($conn->getAdapter() == "sqlite") {
-		$message = sprintf(__("You are connected to %s."), "SQLite " . $dbVersion);
+	if (isset($_SESSION['SB_LOGIN_USER']) && $conn->getOptionValue("host")) {
+		$message = sprintf(__("You are connected to MySQL %s with the user %s. PHP Version: %s"), $dbVersion, $_SESSION['SB_LOGIN_USER'] . "@" . $conn->getOptionValue("host"), phpversion());
 	}
 
 	echo "<p>" . $message . "</p>";
@@ -157,11 +151,7 @@ loginCheck();
 
 	</td>
 </tr>
-<?php
 
-if ($conn->getAdapter() != "sqlite") {
-
-?>
 <tr>
 	<td>
 	<h4><?php echo __("Create a new database"); ?></h4>
@@ -225,11 +215,7 @@ if ($conn->getAdapter() != "sqlite") {
 
 	</td>
 </tr>
-<?php
 
-}
-
-?>
 <tr>
 	<td>
 	<h4><?php echo __("Did you know..."); ?></h4>

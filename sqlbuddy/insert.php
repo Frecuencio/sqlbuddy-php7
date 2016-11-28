@@ -19,13 +19,15 @@ loginCheck();
 
 requireDatabaseAndTableBeDefined();
 
-if (isset($db))
+if (isset($db)) {
 	$conn->selectDB($db);
+}
 
-if (isset($table))
+if (isset($table)){
 	$structureSql = $conn->describeTable($table);
+}
 
-if ($conn->isResultSet($structureSql) && $conn->getAdapter() == "mysql") {
+if ($conn->isResultSet($structureSql)) {
 	while ($structureRow = $conn->fetchAssoc($structureSql)) {
 		$types[$structureRow['Field']] = $structureRow['Type'];
 	}
@@ -33,45 +35,37 @@ if ($conn->isResultSet($structureSql) && $conn->getAdapter() == "mysql") {
 }
 
 if ($conn->isResultSet($structureSql) || sizeof($structureSql) > 0) {
-	
+
 	if ($_POST) {
-		
+
 		$insertFields = "";
 		$insertValues = "";
-		
+
 		foreach ($_POST as $key=>$value) {
-			
-			if ($conn->getAdapter() == "sqlite") {
-				$insertFields .= $key . ",";
-			} else {
-				$insertFields .= "`" . $key . "`,";
-			}
-			
+
+			$insertFields .= "`" . $key . "`,";
+
 			if (is_array($value)) {
 				$value = implode(",", $value);
 			}
-			
+
 			if (isset($types) && substr($value, 0, 2) == "0x" && isset($binaryDTs) && in_array($types[$key], $binaryDTs)) {
 				$insertValues .= $conn->escapeString(urldecode($value)) . ",";
 			} else {
 				$insertValues .= "'" . $conn->escapeString(urldecode($value)) . "',";
 			}
-			
+
 		}
-		
+
 		$insertFields = substr($insertFields, 0, -1);
 		$insertValues = substr($insertValues, 0, -1);
-		
-		if ($conn->getAdapter() == "sqlite") {
-			$insertQuery = "INSERT INTO $table (" . $insertFields . ") VALUES (" . $insertValues . ")";
-		} else {
-			$insertQuery = "INSERT INTO `$table` (" . $insertFields . ") VALUES (" . $insertValues . ")";
-		}
-		
+
+		$insertQuery = "INSERT INTO `$table` (" . $insertFields . ") VALUES (" . $insertValues . ")";
+
 		$conn->query($insertQuery) or ($dbError = $conn->error());
-		
+
 		$insertId = $conn->insertId();
-		
+
 		if (isset($dbError)) {
 			echo '<div class="errormessage" style="margin: 6px 12px 10px; width: 350px">' . $dbError . '</div>';
 		} else {
@@ -80,84 +74,38 @@ if ($conn->isResultSet($structureSql) || sizeof($structureSql) > 0) {
 			if ($insertId)
 				echo ' (Id: ' . $insertId . ')';
 			echo '</div>';
-			
+
 			?>
-			
+
 			<script type="text/javascript" authkey="<?php echo $requestKey; ?>">
-			
+
 			clearPanesOnLoad = true;
 			yellowFade($('freshmess'));
-			
+
 			</script>
-			
+
 			<?php
 		}
-		
+
 	}
-	
+
 	?>
-	
+
 	<form id="insertform" onsubmit="submitForm('insertform'); return false">
 	<table class="insert" cellspacing="0" cellpadding="0">
 	<?php
-	
+
 	$firstField = true;
-	
-	if ($conn->getAdapter() == "sqlite") {
-	
-		if (sizeof($structureSql) > 0) {
-			foreach ($structureSql as $column) {
-				
-				echo '<tr>';
-				echo '<td class="fieldheader"><span style="color: steelblue">';
-				if (strpos($column[1], "primary key") > 0) echo '<u>';
-				echo $column[0];
-				if (strpos($column[1], "primary key") > 0) echo '</u>';
-				echo "</span> " . $column[1] . '</td>';
-				echo "</tr>";
-				echo "<tr>";
-				echo '<td class="inputarea">';
-				
-				if (strpos($column[1], "text") !== false) {
-					echo '<textarea name="' . $column[0] . '">';
-					if (isset($dbError)) {
-						echo $_POST[$column[0]];
-					}
-					echo '</textarea>';
-				} else {
-					echo '<input type="text"';
-					echo ' name="' . $column[0] . '"';
-					if (isset($dbError)) {
-						echo 'value="' . $_POST[$column[0]] . '"';
-					}
-					if ($firstField) {
-						echo ' id="FIRSTFIELD"';
-						$firstField = false;
-					}
-					echo ' class="text" />';
-				}
-				
-				?>
-				
-				</td>
-				</tr>
-				
-				<?php
-			}
-		}
-	
-	} else if ($conn->getAdapter() == "mysql") {
-		
 		if ($conn->isResultSet($structureSql)) {
 			while ($structureRow = $conn->fetchAssoc($structureSql)) {
-				
+
 				preg_match("/^([a-z]+)(.([0-9]+).)?(.*)?$/", $structureRow['Type'], $matches);
-				
+
 				$curtype = $matches[1];
 				$cursizeQuotes = $matches[2];
 				$cursize = $matches[3];
 				$curextra = $matches[4];
-				
+
 				echo '<tr>';
 				echo '<td class="fieldheader"><span style="color: steelblue">';
 				if ($structureRow['Key'] == 'PRI') echo '<u>';
@@ -202,18 +150,15 @@ if ($conn->isResultSet($structureSql) || sizeof($structureSql) > 0) {
 					}
 					echo ' class="text" />';
 				}
-				
+
 				?>
-				
+
 				</td>
 				</tr>
-				
+
 				<?php
 			}
 		}
-		
-	}
-	
 	?>
 	<tr>
 	<td style="padding-top: 5px; padding-bottom: 4px">
@@ -222,27 +167,27 @@ if ($conn->isResultSet($structureSql) || sizeof($structureSql) > 0) {
 	</tr>
 	</table>
 	</form>
-	
+
 	<?php
-	
+
 	if (!$firstField) {
 	?>
 		<script type="text/javascript" authkey="<?php echo $requestKey; ?>">
-		
+
 		$('FIRSTFIELD').focus();
-		
+
 		</script>
 	<?php
 	}
 
 } else {
 	?>
-	
+
 	<div class="errorpage">
 	<h4><?php echo __("Oops"); ?></h4>
 	<p><?php printf(__('There was a bit of trouble locating the "%s" table.'), $table); ?></p>
 	</div>
-	
+
 	<?php
 }
 

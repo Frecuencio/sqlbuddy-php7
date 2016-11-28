@@ -31,10 +31,8 @@ if (isset($db)) {
 
 if (isset($query)) {
 	$displayQuery = $query;
-} else if (isset($db) && isset($table) && $conn->getAdapter() == "mysql") {
+} else if (isset($db) && isset($table)) {
 	$displayQuery = "SELECT * FROM `$table` LIMIT 100";
-} else if (isset($db) && isset($table) && $conn->getAdapter() == "sqlite") {
-	$displayQuery = "SELECT * FROM '$table' LIMIT 100";
 }
 
 ?>
@@ -44,10 +42,10 @@ if (isset($query)) {
 <tr>
 	<td>
 	<textarea name="QUERY" id="QUERY"><?php
-	
+
 	if (isset($displayQuery))
 		echo htmlentities($displayQuery, ENT_QUOTES, 'UTF-8');
-	
+
 	?></textarea>
 	</td>
 	<td valign="bottom" style="padding-left: 7px">
@@ -62,11 +60,11 @@ if (isset($query)) {
 <?php
 
 if (isset($query)) {
-	
+
 	echo '<div style="margin-top: 10px">';
-	
+
 	require "includes/browse.php";
-	
+
 	echo '</div>';
 }
 

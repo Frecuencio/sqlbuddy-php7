@@ -24,27 +24,27 @@ $conn->selectDB($db);
 //run delete queries
 
 if (isset($_POST['runQuery'])) {
-	
+
 	$runQuery = $_POST['runQuery'];
-	
+
 	$queryList = splitQueryText($runQuery);
-	
+
 	foreach ($queryList as $query) {
 		$query = trim($query);
-		
+
 		if ($query != "") {
 			$conn->query($query) or ($dbError = $conn->error());
-			
+
 			// make a list of the tables that were dropped/emptied
 			if (substr($query, 0, 10) == "DROP TABLE")
 				$droppedList[] = substr($query, 12, -1);
-			
+
 			if (substr($query, 0, 10) == "TRUNCATE `")
 				$emptiedList[] = substr($query, 10, -1);
-			
+
 			if (substr($query, 0, 13) == "DELETE FROM '")
 				$emptiedList[] = substr($query, 13, -1);
-			
+
 		}
 	}
 }
@@ -52,15 +52,15 @@ if (isset($_POST['runQuery'])) {
 // if tables were dropped, remove them from the side menu
 if (isset($droppedList) && isset($db)) {
 	?>
-	
+
 	<script type="text/javascript" authkey="<?php echo $requestKey; ?>">
-	
+
 	var targ = $(getSubMenuId('<?php echo $db . "','" . $droppedList[0]; ?>'));
 	while (!targ.hasClass("sublist")) {
 		targ = targ.parentNode;
 	}
 	var toRecalculate = targ.id;
-	
+
 	<?php
 	for ($mn=0; $mn<count($droppedList); $mn++) {
 	?>
@@ -68,31 +68,31 @@ if (isset($droppedList) && isset($db)) {
 	<?php
 	}
 	?>
-	
+
 	recalculateSubmenuHeight(toRecalculate);
-	
+
 	</script>
-	
+
 	<?php
 }
 
 // if tables were emptied, reset their counts in js
 if (isset($emptiedList) && isset($db)) {
 	?>
-	
+
 	<script type="text/javascript" authkey="<?php echo $requestKey; ?>">
 	<?php
-	
+
 	for ($mn=0; $mn<count($emptiedList); $mn++) {
 		echo "sb.tableRowCounts[\"" . $db . "_" . $emptiedList[$mn] . "\"] = \"0\";\n";
 		echo "var sideA = $(getSubMenuId('" . $db . "', '" . $emptiedList[$mn] . "'));\n";
 		echo 'var subc = $E(".subcount", sideA);';
 		echo "\nsubc.set(\"text\", \"(0)\");\n";
 	}
-	
+
 	?>
 	</script>
-	
+
 	<?php
 }
 
@@ -114,28 +114,26 @@ if (isset($dbError)) {
 $tableSql = $conn->listTables();
 
 if ($conn->isResultSet($tableSql)) {
-	
+
 	echo '<div style="margin-bottom: 15px">';
-	
+
 	echo '<table class="browsenav">';
 	echo '<tr>';
 	echo '<td class="options">';
-	
+
 	echo __("Select") . ':&nbsp;&nbsp;<a onclick="checkAll()">' . __("All") . '</a>&nbsp;&nbsp;<a onclick="checkNone()">' . __("None") . '</a>';
 	echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . __("With selected") . ':&nbsp;&nbsp;<a onclick="emptySelectedTables()">' . __("Empty") . '</a>&nbsp;&nbsp;<a onclick="dropSelectedTables()">' . __("Drop") . '</a>';
-	
-	if ($conn->getAdapter() == "mysql") {
-		echo '&nbsp;&nbsp;<a onclick="optimizeSelectedTables()">' . __("Optimize") . '</a>';
-	}
-	
+
+	echo '&nbsp;&nbsp;<a onclick="optimizeSelectedTables()">' . __("Optimize") . '</a>';
+
 	echo '</td>';
 	echo '</tr>';
 	echo '</table>';
-	
+
 	echo '<div class="grid">';
-	
+
 	echo '<div class="emptyvoid">&nbsp;</div>';
-	
+
 	echo '<div class="gridheader impotent">';
 		echo '<div class="gridheaderinner">';
 		echo '<table cellpadding="0" cellspacing="0">';
@@ -144,96 +142,93 @@ if ($conn->isResultSet($tableSql)) {
 		echo '<td><div class="columnresizer"></div></td>';
 		echo '<td><div column="2" class="headertitle column2">' . __("Rows") . '</div></td>';
 		echo '<td><div class="columnresizer"></div></td>';
-		
+
 		if (isset($charsetList) && isset($collationList)) {
 			echo '<td><div column="3" class="headertitle column3">' . __("Charset") . '</div></td>';
 			echo '<td><div class="columnresizer"></div></td>';
 			echo '<td><div column="4" class="headertitle column4">' . __("Overhead") . '</div></td>';
 			echo '<td><div class="columnresizer"></div></td>';
-		} else if ($conn->getAdapter() == "mysql") {
+		} else{
 			echo '<td><div column="3" class="headertitle column3">' . __("Overhead") . '</div></td>';
 			echo '<td><div class="columnresizer"></div></td>';
 		}
-		
+
 		echo '<td><div class="emptyvoid" style="border-right: 0">&nbsp;</div></td>';
 		echo '</tr>';
 		echo '</table>';
 		echo '</div>';
 	echo '</div>';
-	
+
 	echo '<div class="leftchecks" style="max-height: 400px">';
-	
+
 	$m = 0;
-	
+
 	while ($tableRow = $conn->fetchArray($tableSql)) {
 		echo '<dl class="manip';
-		
+
 		if ($m % 2 == 1)
 			echo ' alternator';
-		else 
+		else
 			echo ' alternator2';
-		
+
 		echo '"><dt><input type="checkbox" class="check' . $m . '" onclick="rowClicked(' . $m++ . ')" querybuilder="' . $tableRow[0] . '" /></dt></dl>';
 	}
-	
+
 	echo '</div>';
-	
+
 	$tableSql = $conn->listTables();
-	
+
 	echo '<div class="gridscroll withchecks" style="overflow-x: hidden; max-height: 400px">';
-	
+
 	$m = 0;
-	
+
 	while ($tableRow = $conn->fetchArray($tableSql)) {
-		
+
 		$rowCount = $conn->tableRowCount($tableRow[0]);
-		
-		if ($conn->getAdapter() == "mysql") {
-			$infoSql = $conn->query("SHOW TABLE STATUS LIKE '" . $tableRow[0] . "'");
-			$infoRow = $conn->fetchAssoc($infoSql);
-			
-			$overhead = $infoRow["Data_free"];
-			
-			$formattedOverhead = "";
-			
-			if ($overhead > 0)
-				$formattedOverhead = memoryFormat($overhead);
+
+		$infoSql = $conn->query("SHOW TABLE STATUS LIKE '" . $tableRow[0] . "'");
+		$infoRow = $conn->fetchAssoc($infoSql);
+
+		$overhead = $infoRow["Data_free"];
+
+		$formattedOverhead = "";
+
+		if ($overhead > 0){
+			$formattedOverhead = memoryFormat($overhead);
 		}
-		
+
 		echo '<div class="row' . $m . ' browse';
-		
+
 		if ($m % 2 == 1) { echo ' alternator'; }
-		else 
+		else
 		{ echo ' alternator2'; }
-		
+
 		echo '">';
 		echo '<table cellpadding="0" cellspacing="0">';
 		echo '<tr>';
 		echo '<td><div class="item column1"><div style="float: left; overflow: hidden; width: 185px">' . $tableRow[0] . '</div><img src="images/goto.png" class="goto" onclick="subTabLoad(\'' . $db . '\', \'' . $tableRow[0] . '\')" /></div></td>';
 		echo '<td><div class="item column2">' . number_format($rowCount) . '</div></td>';
-		
+
 		if (isset($collationList) && array_key_exists("Collation", $infoRow)) {
 			echo '<td><div class="item column3">' . $collationList[$infoRow['Collation']] . '</div></td>';
 			echo '<td><div class="item column4">' . $formattedOverhead . '</div></td>';
-		} else if ($conn->getAdapter() == "mysql") {
+		} else{
 			echo '<td><div class="item column4">' . $formattedOverhead . '</div></td>';
 		}
-		
+
 		echo '</tr>';
 		echo '</table>';
 		echo '</div>';
-		
+
 		$m++;
 	}
-	
-	echo '</div>';
-	echo '</div>';
-	
-	echo '<br />';
-	
-}
 
-if ($conn->getAdapter() != "sqlite") {
+	echo '</div>';
+	echo '</div>';
+
+	echo '<br />';
+
+}
 
 ?>
 
@@ -244,9 +239,6 @@ if ($conn->getAdapter() != "sqlite") {
 </div>
 
 <?php
-
-}
-
 
 if (isset($charsetList)) {
 
@@ -277,10 +269,10 @@ if ($conn->isResultSet($currentCharSql)) {
 	echo "<option></option>";
 	foreach ($charsetList as $charset) {
 		echo "<option value=\"" . $charset . "\"";
-		
+
 		if (isset($currentChar) && $charset == $currentChar)
 			echo " selected=\"selected\"";
-		
+
 		echo ">" . $charset . "</option>";
 	}
 	echo "</select>";
@@ -306,7 +298,7 @@ if ($conn->isResultSet($currentCharSql)) {
 
 <div class="inputbox">
 	<h4><?php echo __("Create a new table"); ?></h4>
-	
+
 	<form onsubmit="createTable(); return false">
 	<table cellpadding="0" style="width: 300px">
 	<tr>
@@ -318,7 +310,7 @@ if ($conn->isResultSet($currentCharSql)) {
 		</td>
 	</tr>
 	<?php
-	
+
 	if (isset($charsetList)) {
 		echo "<tr>";
 		echo "<td class=\"secondaryheader\" style=\"width: 60px\">";
@@ -329,17 +321,17 @@ if ($conn->isResultSet($currentCharSql)) {
 		echo "<option></option>";
 		foreach ($charsetList as $charset) {
 			echo "<option value=\"" . $charset . "\"";
-			
+
 			if (isset($currentChar) && $charset == $currentChar)
 				echo " selected=\"selected\"";
-			
+
 			echo ">" . $charset . "</option>";
 		}
 		echo "</select>";
 		echo "</td>";
 		echo "</tr>";
 	}
-	
+
 	?>
 	<tr>
 		<td style="padding-top: 5px; color: gray" colspan="2">
@@ -348,7 +340,7 @@ if ($conn->isResultSet($currentCharSql)) {
 	</tr>
 	</table>
 	<div id="fieldlist">
-		
+
 		<div class="fieldbox">
 		<table cellpadding="0" class="overview">
 		<tr>
@@ -357,12 +349,7 @@ if ($conn->isResultSet($currentCharSql)) {
 		<a class="fieldclose" onclick="removeField(this)"></a>
 		</td>
 		</tr>
-		<?php
-		
-		if ($conn->getAdapter() == "mysql") {
-			
-			?>
-			<tr>
+		<tr>
 			<td class="secondaryheader">
 			<?php echo __("Name"); ?>:
 			</td>
@@ -375,16 +362,16 @@ if ($conn->isResultSet($currentCharSql)) {
 			<td>
 			<select name="TYPE" onchange="updateFieldName(this); toggleValuesLine(this)">
 			<?php
-			
+
 			foreach ($typeList as $type) {
 				echo '<option value="' . $type . '">' . $type . '</option>';
 			}
-			
+
 			?>
 			</select>
 			</td>
-			</tr>
-			<tr class="valueline" style="display: none">
+		</tr>
+		<tr class="valueline" style="display: none">
 			<td class="secondaryheader">
 			<?php echo __("Values"); ?>:
 			</td>
@@ -394,8 +381,8 @@ if ($conn->isResultSet($currentCharSql)) {
 			<td colspan="2" style="color: gray">
 			<?php echo __("Enter in the format: ('1','2')"); ?>
 			</td>
-			</tr>
-			<tr>
+		</tr>
+		<tr>
 			<td class="secondaryheader">
 			<?php echo __("Size") ?>:
 			</td>
@@ -413,8 +400,8 @@ if ($conn->isResultSet($currentCharSql)) {
 			<option value="index"><?php echo __("index"); ?></option>
 			</select>
 			</td>
-			</tr>
-			<tr>
+		</tr>
+		<tr>
 			<td class="secondaryheader">
 			<?php echo __("Default") ?>:
 			</td>
@@ -422,7 +409,7 @@ if ($conn->isResultSet($currentCharSql)) {
 			<input type="text" class="text" name="DEFAULT" onkeyup="updateFieldName(this)" />
 			</td>
 			<?php
-			
+
 			if (isset($charsetList)) {
 				echo "<td class=\"secondaryheader\" style=\"padding-left: 5px\">";
 				echo __("Charset") . ":";
@@ -439,10 +426,10 @@ if ($conn->isResultSet($currentCharSql)) {
 				echo "<td></td>";
 				echo "<td></td>";
 			}
-			
+
 			?>
-			</tr>
-			<tr>
+		</tr>
+		<tr>
 			<td class="secondaryheader">
 			<?php echo __("Other"); ?>:
 			</td>
@@ -452,91 +439,12 @@ if ($conn->isResultSet($currentCharSql)) {
 			<label><input type="checkbox" name="NOTNULL" onchange="updateFieldName(this)"><?php echo __("Not Null"); ?></label>
 			<label><input type="checkbox" name="AUTO" onchange="updateFieldName(this)"><?php echo __("Auto Increment"); ?></label>
 			</td>
-			</tr>
-			<?php
-			
-		} else if ($conn->getAdapter() == "sqlite") {
-			
-			?>
-			<tr>
-			<td class="secondaryheader">
-			<?php echo __("Name"); ?>:
-			</td>
-			<td>
-			<input type="text" class="text" name="NAME" onkeyup="updateFieldName(this)" />
-			</td>
-			<td class="secondaryheader" style="padding-left: 5px">
-			<?php echo __("Type"); ?>:
-			</td>
-			<td>
-			<select name="TYPE" onchange="updateFieldName(this)">
-			<option value="">typeless</option>
-			<?php
-			
-			foreach ($sqliteTypeList as $type) {
-				echo '<option value="' . $type . '">' . $type . '</option>';
-			}
-			
-			?>
-			</select>
-			</td>
-			</tr>
-			<tr>
-			<td class="secondaryheader">
-			<?php echo __("Size") ?>:
-			</td>
-			<td class="inputarea">
-			<input type="text" class="text" name="SIZE" onkeyup="updateFieldName(this)" />
-			</td>
-			<td class="secondaryheader" style="padding-left: 5px">
-			<?php echo __("Key"); ?>:
-			</td>
-			<td class="inputarea">
-			<select name="KEY" onchange="updateFieldName(this)">
-			<option value=""></option>
-			<option value="primary"><?php echo __("primary"); ?></option>
-			</select>
-			</td>
-			</tr>
-			<tr>
-			<td class="secondaryheader">
-			<?php echo __("Default") ?>:
-			</td>
-			<td class="inputarea">
-			<input type="text" class="text" name="DEFAULT" onkeyup="updateFieldName(this)" />
-			</td>
-			<td></td>
-			<td></td>
-			</tr>
-			<tr>
-			<td class="secondaryheader">
-			<?php echo __("Other"); ?>:
-			</td>
-			<td colspan="3">
-			<label><input type="checkbox" name="NOTNULL" onchange="updateFieldName(this)"><?php echo __("Not Null"); ?></label>
-			<label><input type="checkbox" name="UNIQUE" onchange="updateFieldName(this)"><?php echo __("Unique"); ?></label>
-			<?php
-			
-			// autoincrement supported in SQLite 3+
-			if (version_compare($conn->getVersion(), "3.0.0", ">=")) {
-			?>
-				<label><input type="checkbox" name="AUTO" onchange="updateFieldName(this)"><?php echo __("Auto Increment"); ?></label>
-			<?php
-			}
-			
-			?>
-			</td>
-			</tr>
-			<?php
-			
-		}
-		
-		?>
+		</tr>
 		</table>
 		</div>
-		
+
 	</div>
-		
+
 	<table cellpadding="0" width="370" id="fieldcontrols">
 	<tr>
 	<td style="padding: 5px 0 4px">
@@ -548,7 +456,7 @@ if ($conn->isResultSet($currentCharSql)) {
 	</tr>
 	</table>
 	</form>
-	
+
 </div>
 
 </td>
@@ -561,17 +469,17 @@ setTimeout("startGrid()", 1);
 <?php
 
 }else{
-	
+
 	?>
-	
+
 	<div class="errorpage">
 	<h4><?php echo __("Oops"); ?></h4>
 	<p><?php echo __("For some reason, the database parameter was not included with your request."); ?></p>
 	</div>
-	
+
 	<?php
 	exit;
-	
+
 }
 
 ?>

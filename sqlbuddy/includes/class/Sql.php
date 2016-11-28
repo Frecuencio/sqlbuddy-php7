@@ -15,8 +15,6 @@ Reviewed : 2016 Carlos Martín Arnillas <https://interruptorgeek.com>
 
 class SQL {
 
-	var $adapter = "";
-	var $method = "";
 	var $version = "";
 	var $conn = "";
 	var $options = "";
@@ -25,10 +23,6 @@ class SQL {
 
 	function __construct($connString, $user = "", $pass = "") {
 		list($this->adapter, $options) = explode(":", $connString, 2);
-
-		if ($this->adapter != "sqlite") {
-			$this->adapter = "mysql";
-		}
 
 		$optionsList = explode(";", $options);
 
@@ -40,45 +34,11 @@ class SQL {
 		$this->options = $opt;
 		$database = (array_key_exists("database", $opt)) ? $opt['database'] : "";
 
-		if ($this->adapter == "sqlite" && substr(sqlite_libversion(), 0, 1) == "3" && class_exists("PDO") && in_array("sqlite", PDO::getAvailableDrivers())) {
-			$this->method = "pdo";
+		$host = (array_key_exists("host", $opt)) ? $opt['host'] : "";
+		$this->conn = @mysqli_connect($host, $user, $pass);
 
-			try
-			{
-				$this->conn = new PDO("sqlite:" . $database, null, null, array(PDO::ATTR_PERSISTENT => true));
-			}
-			catch (PDOException $error) {
-				$this->conn = false;
-            	$this->errorMessage = $error->getMessage();
-          	}
-		} else if ($this->adapter == "sqlite" && substr(sqlite_libversion(), 0, 1) == "2" && class_exists("PDO") && in_array("sqlite2", PDO::getAvailableDrivers())) {
-			$this->method = "pdo";
-
-			try
-			{
-				$this->conn = new PDO("sqlite2:" . $database, null, null, array(PDO::ATTR_PERSISTENT => true));
-			}
-			catch (PDOException $error) {
-				$this->conn = false;
-            	$this->errorMessage = $error->getMessage();
-          	}
-		} else if ($this->adapter == "sqlite") {
-			$this->method = "sqlite";
-			$this->conn = sqlite_open($database, 0666, $sqliteError);
-		} else {
-			$this->method = "mysql";
-			$host = (array_key_exists("host", $opt)) ? $opt['host'] : "";
-			$this->conn = @mysqli_connect($host, $user, $pass);
-		}
-
-		if ($this->conn && $this->method == "pdo") {
-			$this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
-		}
-
-		if ($this->conn && $this->adapter == "mysql") {
-			$this->query("SET NAMES 'utf8'");
-			$_SESSION['MYSQL_VERSION'] =  mysqli_get_server_version($this->conn);
-		}
+		$this->query("SET NAMES 'utf8'");
+		$_SESSION['MYSQL_VERSION'] =  mysqli_get_server_version($this->conn);
 
 		if ($this->conn && $database) {
 			$this->db = $database;
@@ -91,25 +51,11 @@ class SQL {
 
 	function disconnect() {
 		if ($this->conn) {
-			if ($this->method == "pdo") {
-				$this->conn = null;
-			} else if ($this->method == "mysql") {
-				mysqli_close($this->conn);
-				$this->conn = null;
-			} else if ($this->method == "sqlite") {
-				sqlite_close($this->conn);
-				$this->conn = null;
-			}
+			mysqli_close($this->conn);
+			$this->conn = null;
 		}
 	}
 
-	function getAdapter() {
-		return $this->adapter;
-	}
-
-	function getMethod() {
-		return $this->method;
-	}
 
 	function getOptionValue($optKey) {
 		if (array_key_exists($optKey, $this->options)) {
@@ -121,223 +67,130 @@ class SQL {
 
 	function selectDB($db) {
 		if ($this->conn) {
-			if ($this->method == "mysql") {
-				$this->db = $db;
-				return (mysqli_select_db($this->conn,$db));
-			} else {
-				return true;
-			}
-		} else {
-			return false;
+			$this->db = $db;
+			return (mysqli_select_db($this->conn,$db));
 		}
+		return false;
 	}
 
 	function query($queryText) {
 		if ($this->conn) {
-			if ($this->method == "pdo") {
-				$queryResult = $this->conn->prepare($queryText);
+			$queryResult = @mysqli_query($this->conn, $queryText);
 
-				if ($queryResult)
-					$queryResult->execute();
-
-				if (!$queryResult) {
-					$errorInfo = $this->conn->errorInfo();
-					$this->errorMessage = $errorInfo[2];
-				}
-
-				return $queryResult;
-			} else if ($this->method == "mysql") {
-				$queryResult = @mysqli_query($this->conn, $queryText);
-
-				if (!$queryResult) {
-					$this->errorMessage = mysqli_error($this->conn);
-				}
-
-				return $queryResult;
-			} else if ($this->method == "sqlite") {
-				$queryResult = sqlite_query($this->conn, $queryText);
-
-				if (!$queryResult) {
-					$this->errorMessage = sqlite_error_string(sqlite_last_error($this->conn));
-				}
-
-				return $queryResult;
+			if (!$queryResult) {
+				$this->errorMessage = mysqli_error($this->conn);
 			}
-		} else {
-			return false;
+
+			return $queryResult;
 		}
+		return false;
 	}
 
-	// Be careful using this function - when used with pdo, the pointer is moved
-	// to the end of the result set and the query needs to be rerun. Unless you
-	// actually need a count of the rows, use the isResultSet() function instead
 	function rowCount($resultSet) {
-		if (!$resultSet)
+		if (!$resultSet) {
 			return false;
+		}
 
 		if ($this->conn) {
-			if ($this->method == "pdo") {
-				return count($resultSet->fetchAll());
-			} else if ($this->method == "mysql") {
-				return @mysqli_num_rows($resultSet);
-			} else if ($this->method == "sqlite") {
-				return @sqlite_num_rows($resultSet);
-			}
+			return @mysqli_num_rows($resultSet);
 		}
+		return false;
 	}
 
 	function isResultSet($resultSet) {
 		if ($this->conn) {
-			if ($this->method == "pdo") {
-				return ($resultSet == true);
-			} else {
-				return ($this->rowCount($resultSet) > 0);
-			}
+			return ($this->rowCount($resultSet) > 0);
 		}
+		return false;
 	}
 
 	function fetchArray($resultSet) {
-		if (!$resultSet)
+		if (!$resultSet) {
 			return false;
+		}
 
 		if ($this->conn) {
-			if ($this->method == "pdo") {
-				return $resultSet->fetch(PDO::FETCH_NUM);
-			} else if ($this->method == "mysql") {
 				return mysqli_fetch_row($resultSet);
-			} else if ($this->method == "sqlite") {
-				return sqlite_fetch_array($resultSet, SQLITE_NUM);
-			}
 		}
+		return false;
 	}
 
 	function fetchAssoc($resultSet) {
-		if (!$resultSet)
+		if (!$resultSet) {
 			return false;
+		}
 
 		if ($this->conn) {
-			if ($this->method == "pdo") {
-				return $resultSet->fetch(PDO::FETCH_ASSOC);
-			} else if ($this->method == "mysql") {
-				return mysqli_fetch_assoc($resultSet);
-			} else if ($this->method == "sqlite") {
-				return sqlite_fetch_array($resultSet, SQLITE_ASSOC);
-			}
+			return mysqli_fetch_assoc($resultSet);
 		}
+		return false;
 	}
 
 	function affectedRows($resultSet) {
-		if (!$resultSet)
+		if (!$resultSet) {
 			return false;
+		}
 
 		if ($this->conn) {
-			if ($this->method == "pdo") {
-				return $resultSet->rowCount();
-			} else if ($this->method == "mysql") {
-				return @mysqli_affected_rows($resultSet);
-			} else if ($this->method == "sqlite") {
-				return sqlite_changes($resultSet);
-			}
+			return @mysqli_affected_rows($resultSet);
 		}
+		return false;
 	}
 
 	function result($resultSet, $targetRow, $targetColumn = "") {
-		if (!$resultSet)
+		if (!$resultSet) {
 			return false;
-
-		if ($this->conn) {
-			if ($this->method == "pdo") {
-				if ($targetColumn) {
-					$resultRow = $resultSet->fetch(PDO::FETCH_ASSOC, PDO::FETCH_ORI_ABS, $targetRow);
-					return $resultRow[$targetColumn];
-				} else {
-					$resultRow = $resultSet->fetch(PDO::FETCH_NUM, PDO::FETCH_ORI_ABS, $targetRow);
-					return $resultRow[0];
-				}
-			} else if ($this->method == "mysql") {
-				return $this->mysqli_result($resultSet, $targetRow, $targetColumn);
-        return $row[$field];
-			} else if ($this->method == "sqlite") {
-				return sqlite_column($resultSet, $targetColumn);
-			}
 		}
+		if ($this->conn) {
+			return $this->mysqli_result($resultSet, $targetRow, $targetColumn);
+      return $row[$field];
+		}
+		return false;
 	}
 
 	function listDatabases() {
 		if ($this->conn) {
-			if ($this->adapter == "mysql") {
-				return $this->query("SHOW DATABASES");
-			} else if ($this->adapter == "sqlite") {
-				return $this->db;
-			}
+			return $this->query("SHOW DATABASES");
 		}
 	}
 
 	function listTables() {
 		if ($this->conn) {
-			if ($this->adapter == "mysql") {
-				return $this->query("SHOW TABLES");
-			} else if ($this->adapter == "sqlite") {
-				return $this->query("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name");
-			}
+			return $this->query("SHOW TABLES");
 		}
 	}
 
 	function hasCharsetSupport()
 	{
-		if ($this->conn) {
-			if ($this->adapter == "mysql" && version_compare($this->getVersion(), "4.1", ">")) {
-				return true;
-			} else  {
-				return false;
-			}
-		}
+		return $this->conn && version_compare($this->getVersion(), "4.1", ">");
 	}
 
 	function listCharset() {
 		if ($this->conn) {
-			if ($this->adapter == "mysql") {
-				return $this->query("SHOW CHARACTER SET");
-			} else if ($this->adapter == "sqlite") {
-				return "";
-			}
+			return $this->query("SHOW CHARACTER SET");
 		}
+		return '';
 	}
 
 	function listCollation() {
 		if ($this->conn) {
-			if ($this->adapter == "mysql") {
-				return $this->query("SHOW COLLATION");
-			} else if ($this->adapter == "sqlite") {
-				return "";
-			}
+			return $this->query("SHOW COLLATION");
 		}
+		return '';
 	}
 
 	function insertId() {
 		if ($this->conn) {
-			if ($this->method == "pdo") {
-				return $this->conn->lastInsertId();
-			} else if ($this->method == "mysql") {
-				return @mysqli_insert_id($this->conn);
-			} else if ($this->method == "sqlite") {
-				return sqlite_last_insert_rowid($this-conn);
-			}
+			return @mysqli_insert_id($this->conn);
 		}
+		return '';
 	}
 
 	function escapeString($toEscape) {
 		if ($this->conn) {
-			if ($this->method == "pdo") {
-				$toEscape = $this->conn->quote($toEscape);
-				$toEscape = substr($toEscape, 1, -1);
-				return $toEscape;
-			} else if ($this->adapter == "mysql") {
-				return mysqli_real_escape_string($this->conn ,$toEscape);
-			} else if ($this->adapter == "sqlite") {
-				return sqlite_escape_string($toEscape);
-			}
+			return mysqli_real_escape_string($this->conn ,$toEscape);
 		}
+		return '';
 	}
 
 	function getVersion() {
@@ -346,60 +199,30 @@ class SQL {
 			if ($this->version) {
 				return $this->version;
 			}
-
-			if ($this->adapter == "mysql") {
-				$verSql = mysqli_get_server_info($this->conn);
-				$version = explode("-", $verSql);
-				$this->version = $version[0];
-				return $this->version;
-			} else if ($this->adapter == "sqlite") {
-				$this->version = sqlite_libversion();
-				return $this->version;
-			}
+			$verSql = mysqli_get_server_info($this->conn);
+			$version = explode("-", $verSql);
+			$this->version = $version[0];
+			return $this->version;
 		}
-
+		return '';
 	}
 
 	// returns the number of rows in a table
 	function tableRowCount($table) {
 		if ($this->conn) {
-			if ($this->adapter == "mysql") {
-				$countSql = $this->query("SELECT COUNT(*) AS `RowCount` FROM `" . $table . "`");
-				$count = (int)($this->result($countSql, 0, "RowCount"));
-				return $count;
-			} else if ($this->adapter == "sqlite") {
-				$countSql = $this->query("SELECT COUNT(*) AS 'RowCount' FROM '" . $table . "'");
-				$count = (int)($this->result($countSql, 0, "RowCount"));
-				return $count;
-			}
+			$countSql = $this->query("SELECT COUNT(*) AS `RowCount` FROM `" . $table . "`");
+			$count = (int)($this->result($countSql, 0, "RowCount"));
+			return $count;
 		}
+		return '';
 	}
 
 	// gets column info for a table
 	function describeTable($table) {
 		if ($this->conn) {
-			if ($this->adapter == "mysql") {
-				return $this->query("DESCRIBE `" . $table . "`");
-			} else if ($this->adapter == "sqlite") {
-				$columnSql = $this->query("SELECT sql FROM sqlite_master where tbl_name = '" . $table . "'");
-				$columnInfo = $this->result($columnSql, 0, "sql");
-				$columnStart = strpos($columnInfo, '(');
-				$columns = substr($columnInfo, $columnStart+1, -1);
-				$columns = split(',[^0-9]', $columns);
-
-				$columnList = array();
-
-				foreach ($columns as $column) {
-					$column = trim($column);
-					$columnSplit = explode(" ", $column, 2);
-					$columnName = $columnSplit[0];
-					$columnType = (sizeof($columnSplit) > 1) ? $columnSplit[1] : "";
-					$columnList[] = array($columnName, $columnType);
-				}
-
-				return $columnList;
-			}
+			return $this->query("DESCRIBE `" . $table . "`");
 		}
+		return '';
 	}
 
 	/*
@@ -408,7 +231,7 @@ class SQL {
 	function getMetadata() {
 		$output = '';
 		if ($this->conn) {
-			if ($this->adapter == "mysql" && version_compare($this->getVersion(), "5.0.0", ">=")) {
+			if (version_compare($this->getVersion(), "5.0.0", ">=")) {
 				$this->selectDB("information_schema");
 				$schemaSql = $this->query("SELECT `SCHEMA_NAME` FROM `SCHEMATA` ORDER BY `SCHEMA_NAME`");
 				if ($this->rowCount($schemaSql)) {
@@ -439,7 +262,7 @@ class SQL {
 					}
 					$output = substr($output, 0, -1);
 				}
-			} else if ($this->adapter == "mysql") {
+			} else {
 				$schemaSql = $this->listDatabases();
 
 				if ($this->rowCount($schemaSql)) {
@@ -466,25 +289,6 @@ class SQL {
 					}
 					$output = substr($output, 0, -1);
 				}
-			} else if ($this->adapter == "sqlite") {
-				$output .= '{"name": "' . $this->db . '"';
-
-				$tableSql = $this->listTables();
-
-				if ($tableSql) {
-					$output .= ',"items": [';
-					while ($tableRow = $this->fetchArray($tableSql)) {
-						$countSql = $this->query("SELECT COUNT(*) AS 'RowCount' FROM '" . $tableRow[0] . "'");
-						$rowCount = (int)($this->result($countSql, 0, "RowCount"));
-						$output .= '{"name":"' . $tableRow[0] . '","rowcount":' . $rowCount . '},';
-					}
-
-					if (substr($output, -1) == ",")
-						$output = substr($output, 0, -1);
-
-					$output .= ']';
-				}
-				$output .= '}';
 			}
 		}
 		return $output;

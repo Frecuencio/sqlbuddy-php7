@@ -26,18 +26,14 @@ if (isset($db))
 
 if (isset($_POST['runQuery'])) {
 	$runQuery = $_POST['runQuery'];
-	
+
 	$queryList = splitQueryText($runQuery);
 	foreach ($queryList as $query) {
 		$conn->query($query);
 	}
 }
 
-if ($conn->getAdapter() == "sqlite") {
-	$query = "SELECT * FROM '$table'";
-} else {
-	$query = "SELECT * FROM `$table`";
-}
+$query = "SELECT * FROM `$table`";
 
 $queryTable = $table;
 
