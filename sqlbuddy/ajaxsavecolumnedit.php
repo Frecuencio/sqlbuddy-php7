@@ -2,14 +2,15 @@
 /*
 
 SQL Buddy - Web based MySQL administration
-http://www.sqlbuddy.com/
+http://interruptorgeek.com/sql-buddy-ig-review/
 
 ajaxsavecolumnedit.php
 - saves the details of a table column
 
 MIT license
 
-2008 Calvin Lough <http://calv.in>
+Original : 2008 Calvin Lough <http://calv.in>
+Reviewed : 2016 Carlos Martín Arnillas <https://interruptorgeek.com>
 
 */
 
@@ -22,9 +23,9 @@ if (isset($db))
 
 if (isset($_POST['runQuery'])) {
 	$query = $_POST['runQuery'];
-	
+
 	$conn->query($query) or ($dbError = $conn->error());
-	
+
 	echo "{\n";
 	echo "    \"formupdate\": \"" . $_GET['form'] . "\",\n";
 	echo "    \"errormess\": \"";
@@ -32,7 +33,7 @@ if (isset($_POST['runQuery'])) {
 		echo $dbError;
 	echo "\"\n";
 	echo '}';
-	
+
 }
 
 ?>

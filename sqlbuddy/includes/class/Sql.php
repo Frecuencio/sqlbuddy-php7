@@ -2,7 +2,7 @@
 /*
 
 SQL Buddy - Web based MySQL administration
-http://www.sqlbuddy.com/
+http://interruptorgeek.com/sql-buddy-ig-review/
 
 sql.php
 - sql class

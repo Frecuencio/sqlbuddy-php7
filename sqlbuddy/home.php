@@ -2,14 +2,14 @@
 /*
 
 SQL Buddy - Web based MySQL administration
-http://www.sqlbuddy.com/
+http://interruptorgeek.com/sql-buddy-ig-review/
 
 home.php
 - create a new database, links, etc
 
 MIT license
 
-2008 Calvin Lough <http://calv.in>
+Original : 2008 Calvin Lough <http://calv.in>
 Reviewed : 2016 Carlos Martín Arnillas <https://interruptorgeek.com>
 */
 

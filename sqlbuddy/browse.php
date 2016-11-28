@@ -2,14 +2,15 @@
 /*
 
 SQL Buddy - Web based MySQL administration
-http://www.sqlbuddy.com/
+http://interruptorgeek.com/sql-buddy-ig-review/
 
 browse.php
 - browse table - just grabs variables and passes them to include_browse.php
 
 MIT license
 
-2008 Calvin Lough <http://calv.in>
+Original : 2008 Calvin Lough <http://calv.in>
+Reviewed : 2016 Carlos Martín Arnillas <https://interruptorgeek.com>
 
 */
 

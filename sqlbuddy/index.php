@@ -2,14 +2,15 @@
 /*
 
 SQL Buddy - Web based MySQL administration
-http://www.sqlbuddy.com/
+http://interruptorgeek.com/sql-buddy-ig-review/
 
 index.php
 - output page structure, content loaded through ajax
 
 MIT license
 
-2008 Calvin Lough <http://calv.in>
+Original : 2008 Calvin Lough <http://calv.in>
+Reviewed : 2016 Carlos Martín Arnillas <https://interruptorgeek.com>
 
 */
 

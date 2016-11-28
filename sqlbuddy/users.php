@@ -2,14 +2,15 @@
 /*
 
 SQL Buddy - Web based MySQL administration
-http://www.sqlbuddy.com/
+http://interruptorgeek.com/sql-buddy-ig-review/
 
 users.php
 - manage users page
 
 MIT license
 
-2008 Calvin Lough <http://calv.in>
+Original : 2008 Calvin Lough <http://calv.in>
+Reviewed : 2016 Carlos Martín Arnillas <https://interruptorgeek.com>
 
 */
 
@@ -25,89 +26,89 @@ function removeAdminPrivs($priv) {
 }
 
 if ($_POST) {
-	
+
 	if (isset($_POST['NEWHOST']))
 		$newHost = $_POST['NEWHOST'];
 	else
 		$newHost = "localhost";
-	
+
 	if (isset($_POST['NEWNAME']))
 		$newName = $_POST['NEWNAME'];
-	
+
 	if (isset($_POST['NEWPASS']))
 		$newPass = $_POST['NEWPASS'];
-	
+
 	if (isset($_POST['ACCESSLEVEL']))
 		$accessLevel = $_POST['ACCESSLEVEL'];
 	else
 		$accessLevel = "GLOBAL";
-	
+
 	if ($accessLevel != "LIMITED")
 		$accessLevel = "GLOBAL";
-	
+
 	if (isset($_POST['DBLIST']))
 		$dbList = $_POST['DBLIST'];
 	else
 		$dbList = array();
-	
+
 	if (isset($_POST['NEWCHOICE']))
 		$newChoice = $_POST['NEWCHOICE'];
-	
+
 	if (isset($_POST['NEWPRIVILEGES']))
 		$newPrivileges = $_POST['NEWPRIVILEGES'];
-	
+
 	if (isset($newName) && ($accessLevel == "GLOBAL" || ($accessLevel == "LIMITED" && sizeof($dbList) > 0))) {
-		
+
 		if ($newChoice == "ALL") {
 			$privList = "ALL";
 		} else {
-			
+
 			if (sizeof($newPrivileges) > 0) {
 				if ($accessLevel == "LIMITED") {
 					$newPrivileges = array_filter($newPrivileges, "removeAdminPrivs");
 				}
-				
+
 				$privList = implode(", ", $newPrivileges);
-				
+
 			} else {
 				$privList = "USAGE";
 			}
 		}
-		
+
 		if ($accessLevel == "LIMITED") {
 			foreach ($dbList as $theDb) {
 				$newQuery = "GRANT " . $privList;
-				
+
 				$newQuery .= " ON `$theDb`.*";
-				
+
 				$newQuery .= " TO '" . $newName . "'@'" . $newHost . "'";
-				
+
 				if ($newPass)
 					$newQuery .= " IDENTIFIED BY '" . $newPass . "'";
-				
+
 				if (isset($_POST['GRANTOPTION']))
 					$newQuery .= " WITH GRANT OPTION";
-				
+
 				$conn->query($newQuery) or ($dbError = $conn->error());
 			}
 		} else {
 			$newQuery = "GRANT " . $privList;
-			
+
 			$newQuery .= " ON *.*";
-			
+
 			$newQuery .= " TO '" . $newName . "'@'" . $newHost . "'";
-			
+
 			if ($newPass)
 				$newQuery .= " IDENTIFIED BY '" . $newPass . "'";
-			
+
 			if (isset($_POST['GRANTOPTION']))
 				$newQuery .= " WITH GRANT OPTION";
-			
+
 			$conn->query($newQuery) or ($dbError = $conn->error());
 		}
-		
+
 		$conn->query("FLUSH PRIVILEGES") or ($dbError = $conn->error());
-		
+
 	}
 }
 
@@ -116,19 +117,19 @@ $connected = $conn->selectDB("mysql");
 // delete users
 if (isset($_POST['deleteUsers']) && $connected) {
 	$deleteUsers = $_POST['deleteUsers'];
-	
+
 	// boom!
 	$userList = explode(";", $deleteUsers);
-	
+
 	foreach ($userList as $each) {
 		$split = explode("@", $each, 2);
-		
+
 		if (isset($split[0]))
 			$user = trim($split[0]);
-		
+
 		if (isset($split[1]))
 			$host = trim($split[1]);
-		
+
 		if (isset($user) && isset($host)) {
 			$conn->query("REVOKE ALL PRIVILEGES ON *.* FROM '$user'@'$host'");
 			$conn->query("REVOKE GRANT OPTION ON *.* FROM '$user'@'$host'");
@@ -154,33 +155,33 @@ if (isset($dbError)) {
 <?php
 
 if ($connected) {
-	
+
 	$userSql = $conn->query("SELECT * FROM `user`");
-	
+
 	if ($conn->isResultSet($userSql)) {
-		
+
 		?>
-		
+
 		<table class="browsenav">
 		<tr>
 		<td class="options">
 		<?php
-		
+
 		echo __("Select") . ':&nbsp;&nbsp;<a onclick="checkAll()">' . __("All") . '</a>&nbsp;&nbsp;<a onclick="checkNone()">' . __("None") . '</a>';
 		echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . __("With selected") . ':&nbsp;&nbsp;<a onclick="editSelectedRows()">' . __("Edit") . '</a>&nbsp;&nbsp;<a onclick="deleteSelectedUsers()">' . __("Delete") . '</a>';
-		
+
 		?>
-		
+
 		</td>
 		</tr>
 		</table>
-		
+
 		<?php
-		
+
 		echo '<div class="grid">';
-		
+
 		echo '<div class="emptyvoid">&nbsp;</div>';
-		
+
 		echo '<div class="gridheader impotent">';
 			echo '<div class="gridheaderinner">';
 			echo '<table cellpadding="0" cellspacing="0">';
@@ -193,40 +194,40 @@ if ($connected) {
 			echo '</table>';
 			echo '</div>';
 		echo '</div>';
-		
+
 		echo '<div class="leftchecks" style="max-height: 400px">';
-		
+
 		$m = 0;
-		
+
 		while ($userRow = $conn->fetchAssoc($userSql)) {
 			$queryBuilder = $userRow['User'] . "@" . $userRow['Host'];
 			echo '<dl class="manip';
-			
+
 			if ($m % 2 == 1)
 				echo ' alternator';
-			else 
+			else
 				echo ' alternator2';
-			
+
 			echo '"><dt><input type="checkbox" class="check' . $m . '" onclick="rowClicked(' . $m++ . ')" querybuilder="' . $queryBuilder . '" /></dt></dl>';
 		}
-		
+
 		echo '</div>';
-		
+
 		$userSql = $conn->query("SELECT * FROM `user`");
-		
+
 		echo '<div class="gridscroll withchecks" style="overflow-x: hidden; max-height: 400px">';
-		
+
 		if ($conn->isResultSet($userSql)) {
 			$m = 0;
-			
+
 			while ($userRow = $conn->fetchAssoc($userSql)) {
-				
+
 				echo '<div class="row' . $m . ' browse';
-				
+
 				if ($m % 2 == 1) { echo ' alternator'; }
-				else 
+				else
 				{ echo ' alternator2'; }
-				
+
 				echo '">';
 				echo '<table cellspacing="0" cellpadding="0">';
 				echo '<tr>';
@@ -235,36 +236,36 @@ if ($connected) {
 				echo '</tr>';
 				echo '</table>';
 				echo '</div>';
-				
+
 				$m++;
 			}
 		}
-		
+
 		echo '</div>';
 		echo '</div>';
-	
+
 	}
-	
+
 	$hasPermissions = false;
-	
+
 	// check to see if this user has proper permissions to manage users
 	$checkSql = $conn->query("SELECT `Grant_priv` FROM `user` WHERE `Host`='" . $conn->getOptionValue("host") . "' AND `User`='" . $_SESSION['SB_LOGIN_USER'] . "' LIMIT 1");
-	
+
 	if ($conn->isResultSet($checkSql)) {
 		$grantValue = $conn->result($checkSql, 0, "Grant_priv");
-		
+
 		if ($grantValue == "Y") {
 			$hasPermissions = true;
 		}
 	}
-	
+
 	if ($hasPermissions) {
-	
+
 	?>
-	
+
 	<div class="inputbox" style="margin-top: 15px">
 		<h4><?php echo __("Add a new user"); ?></h4>
-			
+
 		<form id="NEWUSERFORM" onsubmit="submitForm('NEWUSERFORM'); return false">
 		<table cellpadding="0">
 		<tr>
@@ -280,22 +281,22 @@ if ($connected) {
 			<td><input type="password" class="text" name="NEWPASS" /></td>
 		</tr>
 		<?php
-		
+
 		$dbList = $conn->listDatabases();
-		
+
 		if ($conn->isResultSet($dbList)) {
-		
+
 		?>
 		<tr>
 			<td class="secondaryheader"><?php echo __("Allow access to"); ?>:</td>
 			<td>
 			<label><input type="radio" name="ACCESSLEVEL" value="GLOBAL" id="ACCESSGLOBAL" onchange="updatePane('ACCESSSELECTED', 'dbaccesspane'); updatePane('ACCESSGLOBAL', 'adminprivlist')" onclick="updatePane('ACCESSSELECTED', 'dbaccesspane'); updatePane('ACCESSGLOBAL', 'adminprivlist')" checked="checked" /><?php echo __("All databases"); ?></label><br />
 			<label><input type="radio" name="ACCESSLEVEL" value="LIMITED" id="ACCESSSELECTED" onchange="updatePane('ACCESSSELECTED', 'dbaccesspane'); updatePane('ACCESSGLOBAL', 'adminprivlist')" onclick="updatePane('ACCESSSELECTED', 'dbaccesspane'); updatePane('ACCESSGLOBAL', 'adminprivlist')" /><?php echo __("Selected databases"); ?></label>
-			
+
 			<div id="dbaccesspane" style="display: none"  class="privpane">
 				<table cellpadding="0">
 				<?php
-				
+
 				while ($dbRow = $conn->fetchArray($dbList)) {
 					echo '<tr>';
 					echo '<td>';
@@ -303,24 +304,24 @@ if ($connected) {
 					echo '</td>';
 					echo '</tr>';
 				}
-				
+
 				?>
 				</table>
 			</div>
-			
+
 			</td>
 		</tr>
 		<?php
-		
+
 		}
-		
+
 		?>
 		<tr>
 			<td class="secondaryheader"><?php echo __("Give user"); ?>:</td>
 			<td>
 			<label><input type="radio" name="NEWCHOICE" value="ALL" onchange="updatePane('PRIVSELECTED', 'privilegepane')" onclick="updatePane('PRIVSELECTED', 'privilegepane')" checked="checked" /><?php echo __("All privileges"); ?></label><br />
 			<label><input type="radio" name="NEWCHOICE" value="SELECTED" id="PRIVSELECTED" onchange="updatePane('PRIVSELECTED', 'privilegepane')" onclick="updatePane('PRIVSELECTED', 'privilegepane')" /><?php echo __("Selected privileges"); ?></label>
-			
+
 			<div id="privilegepane" style="display: none"  class="privpane">
 				<div class="paneheader">
 				<?php echo __("User privileges"); ?>
@@ -395,11 +396,11 @@ if ($connected) {
 				</table>
 				</div>
 			</div>
-			
+
 			</td>
 		</tr>
 		</table>
-		
+
 		<table cellpadding="0">
 		<tr>
 			<td class="secondaryheader"><?php echo __("Options"); ?>:</td>
@@ -408,14 +409,14 @@ if ($connected) {
 			</td>
 		</tr>
 		</table>
-		
+
 		<div style="margin-top: 10px; height: 22px; padding: 4px 0">
 			<input type="submit" class="inputbutton" value="<?php echo __("Submit"); ?>" />
 		</div>
 		</form>
 	</div>
 	<?php
-	
+
 	} else {
 		?>
 		<h4 style="margin-top: 20px"><?php echo __("Error"); ?></h4>

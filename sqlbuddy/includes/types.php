@@ -2,14 +2,14 @@
 /*
 
 SQL Buddy - Web based MySQL administration
-http://www.sqlbuddy.com/
+http://interruptorgeek.com/sql-buddy-ig-review/
 
 types.php
 - list of data types
 
 MIT-style license
 
-Copyright (c) 2008 Calvin Lough, <http://calv.in>
+Original : Calvin Lough, <http://calv.in>
 Reviewed : 2016 Carlos Martín Arnillas <https://interruptorgeek.com>
 
 */

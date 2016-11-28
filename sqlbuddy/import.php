@@ -2,14 +2,15 @@
 /*
 
 SQL Buddy - Web based MySQL administration
-http://www.sqlbuddy.com/
+http://interruptorgeek.com/sql-buddy-ig-review/
 
 import.php
 - import from file
 
 MIT license
 
-2008 Calvin Lough <http://calv.in>
+Original : 2008 Calvin Lough <http://calv.in>
+Reviewed : 2016 Carlos Martín Arnillas <https://interruptorgeek.com>
 
 */
 
@@ -20,15 +21,15 @@ loginCheck();
 ?>
 
 <div class="import">
-	
+
 	<div id="importMessage" style="display: none; margin-bottom: 11px"></div>
-	
+
 	<h4><?php echo __("Import"); ?></h4>
-	
+
 	<form id="importForm" onsubmit="startImport()" action="ajaximportfile.php?db=<?php if (isset($db)) echo $db; ?>&table=<?php if (isset($table)) echo $table; ?>&ajaxRequest=1&requestKey=<?php echo $requestKey; ?>" method="post" enctype="multipart/form-data">
 	<table cellpadding="0">
 	<?php
-	
+
 	if (!isset($table)) {
 	?>
 	<tr>
@@ -36,7 +37,7 @@ loginCheck();
 	</tr>
 	<?php
 	}
-	
+
 	?>
 	<tr>
 		<td class="secondaryheader"><?php echo __("File"); ?>:</td>
@@ -45,7 +46,7 @@ loginCheck();
 		</td>
 	</tr>
 	<?php
-	
+
 	if (isset($table)) {
 	?>
 	<tr>
@@ -57,12 +58,12 @@ loginCheck();
 	</tr>
 	<?php
 	}
-	
+
 	?>
 	</table>
-	
+
 	<div class="exportseperator"></div>
-	
+
 	<table cellpadding="0" id="icsvpane" style="display: none">
 	<tr>
 		<td class="secondaryheader"><?php echo __("Options"); ?>:</td>
@@ -74,15 +75,15 @@ loginCheck();
 		<td colspan="2"><div class="exportseperator"></div></td>
 	</tr>
 	</table>
-	
+
 	<table cellpadding="0">
 	<tr>
 		<td colspan="2"><input type="submit" class="inputbutton" value="<?php echo __("Submit"); ?>" /><span id="importLoad" style="padding-left: 10px; color: rgb(150, 150, 150); display: none;"><?php echo __("Importing..."); ?></span></td>
 	</tr>
 	</table>
-	
+
 	</form>
-	
+
 </div>
 
 <iframe id="importFrame" name="importFrame" src="about:blank" style="display: none; width: 0; height: 0; line-height: 0"></iframe>

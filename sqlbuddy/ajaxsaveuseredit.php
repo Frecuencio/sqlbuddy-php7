@@ -2,14 +2,15 @@
 /*
 
 SQL Buddy - Web based MySQL administration
-http://www.sqlbuddy.com/
+http://interruptorgeek.com/sql-buddy-ig-review/
 
 ajaxsavecolumnedit.php
 - saves the details of a table column
 
 MIT license
 
-2008 Calvin Lough <http://calv.in>
+Original : 2008 Calvin Lough <http://calv.in>
+Reviewed : 2016 Carlos Martín Arnillas <https://interruptorgeek.com>
 
 */
 
@@ -57,7 +58,7 @@ if (isset($_POST['GRANTOPTION']))
 	$grantOption = $_POST['GRANTOPTION'];
 
 if (isset($user) && ($accessLevel == "GLOBAL" || ($accessLevel == "LIMITED" && sizeof($dbList) > 0))) {
-	
+
 	if ($choice == "ALL") {
 		$privList = "ALL";
 	} else {
@@ -65,58 +66,58 @@ if (isset($user) && ($accessLevel == "GLOBAL" || ($accessLevel == "LIMITED" && s
 			$privList = implode(", ", $privileges);
 		else
 			$privList = "USAGE";
-			
+
 		if (sizeof($privileges) > 0) {
 			if ($accessLevel == "LIMITED") {
 				$privileges = array_filter($privileges, "removeAdminPrivs");
 			}
-			
+
 			$privList = implode(", ", $privileges);
 		} else {
 			$privList = "USAGE";
 		}
-		
+
 	}
-	
+
 	$split = explode("@", $user);
-	
+
 	if (isset($split[0]))
 		$name = $split[0];
-	
+
 	if (isset($split[1]))
 		$host = $split[1];
-	
+
 	if (isset($name) && isset($host)) {
 		$user = "'" . $name . "'@'" . $host . "'";
-		
+
 		if ($accessLevel == "LIMITED") {
 			$conn->query("DELETE FROM `db` WHERE `User`='$name' AND `Host`='$host'");
-			
-			foreach ($dbList as $theDb) {	
+
+			foreach ($dbList as $theDb) {
 				$query = "GRANT " . $privList . " ON `$theDb`.* TO " . $user;
-				
+
 				if (isset($grantOption))
 					$query .= " WITH GRANT OPTION";
-				
+
 				$conn->query($query) or ($dbError = $conn->error());
 			}
 		} else {
 			$conn->query("REVOKE ALL PRIVILEGES ON *.* FROM " . $user);
 			$conn->query("REVOKE GRANT OPTION ON *.* FROM " . $user);
-			
+
 			$query = "GRANT " . $privList . " ON *.* TO " . $user;
-		
+
 			if (isset($grantOption))
 				$query .= " WITH GRANT OPTION";
-			
+
 			$conn->query($query) or ($dbError = $conn->error());
 		}
-		
+
 		if (isset($newPass))
 			$conn->query("SET PASSWORD FOR '$name'@'$host' = PASSWORD('$newPass')") or ($dbError = $conn->error());
-		
+
 		$conn->query("FLUSH PRIVILEGES") or ($dbError = $conn->error());
-		
+
 		echo "{\n";
 		echo "    \"formupdate\": \"" . $_GET['form'] . "\",\n";
 		echo "    \"errormess\": \"";
