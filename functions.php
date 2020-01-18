@@ -462,7 +462,7 @@ function splitQueryText($query) {
 	// i spent 3 days figuring out this line
 	preg_match_all("/(?>[^;']|(''|(?>'([^']|\\')*[^\\\]')))+;/ixU", $query, $matches, PREG_SET_ORDER);
 
-	$querySplit = "";
+	$querySplit = [];
 
 	foreach ($matches as $match) {
 		// get rid of the trailing semicolon

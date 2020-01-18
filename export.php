@@ -131,7 +131,7 @@ if ($_POST) {
 
 				$tableSql = $conn->listTables();
 
-				$tables = "";
+				$tables = [];
 
 				if ($conn->isResultSet($tableSql)) {
 					while ($tableRow = $conn->fetchArray($tableSql)) {
