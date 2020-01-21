@@ -2,22 +2,20 @@ sqlbuddy-php7
 =============
 
 ---
+
+
 SQL Buddy fork with compatibility for PHP 5.5+ (PHP 7 Included). Plus, new MySQL column types.
 
-SQL Buddy - IG Review: [http://interruptorgeek.com/sql-buddy-ig-review/](http://interruptorgeek.com/sql-buddy-ig-review/)
-
 Original page: [http://sqlbuddy.com/](http://sqlbuddy.com/)
-
 
 ---
 # How to install:
 
 Simply copy the 'sqlbuddy' folder onto your server. Easy peasy.
 
-
 ---
-# Why i'm giving support to SQL Buddy?
+# Why i'm not giving support to SQL Buddy anymore?
 
-phpMyAdmin is really good to manage databases, but sometimes it's messy and slow.
+First of all, most of the code was written by Calvin Lough back in 2011. He did a really nice work, but nowadays, it surely contains code not optimized and unsafe.
 
-My phpMyAdmin uncompressed folder weigths about 36 MB, while PHP Buddy is requiring only 1.2 MB.
+This version was tested in php 7.4 and seems working fine, but i suggest migrating to another up-to-date solution.
