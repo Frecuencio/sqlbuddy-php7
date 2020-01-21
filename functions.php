@@ -168,13 +168,12 @@ if (isset($conn) && $conn->isConnected()) {
 	}
 }
 
-// undo magic quotes, if necessary
-if (get_magic_quotes_gpc()) {
-	$_GET = stripslashesFromArray($_GET);
-	$_POST = stripslashesFromArray($_POST);
-	$_COOKIE = stripslashesFromArray($_COOKIE);
-	$_REQUEST = stripslashesFromArray($_REQUEST);
-}
+
+$_GET = stripslashesFromArray($_GET);
+$_POST = stripslashesFromArray($_POST);
+$_COOKIE = stripslashesFromArray($_COOKIE);
+$_REQUEST = stripslashesFromArray($_REQUEST);
+
 
 function stripslashesFromArray($value) {
     $value = is_array($value) ?
